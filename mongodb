@@ -1,0 +1,66 @@
+#mongodb
+
+# пример конфигурационного файла
+storage:
+  dbPath: /var/mongodb/db/node1
+net:
+  bindIp: 192.168.103.100,localhost
+  port: 27011
+security:
+  authorization: enabled
+  keyFile: /var/mongodb/pki/m103-keyfile
+systemLog:
+  destination: file
+  path: /var/mongodb/db/node1/mongod.log
+  logAppend: true
+processManagement:
+  fork: true
+replication:
+  replSetName: m103-example
+  
+#создание файла ключа для обмена между копиями в replicaset
+  sudo mkdir -p /var/mongodb/pki/
+  sudo chown vagrant:vagrant /var/mongodb/pki/
+  openssl rand -base64 741 > /var/mongodb/pki/m103-keyfile
+  chmod 400 /var/mongodb/pki/m103-keyfile
+  
+#запуск с конфигом
+mongod -f [имя файла].conf
+
+#подключиться к ноде
+mongo --port 27011
+
+#инициировать replicaset
+rs.initiate()
+
+#так как инициированный репликасет требует авторизации создадим пользователя
+use admin
+db.createUser({
+  user: "m103-admin",
+  pwd: "m103-pass",
+  roles: [
+    {role: "root", db: "admin"}
+  ]
+})
+
+#выйти из шелла
+exit
+
+#подклчаемс под админом
+mongo --host "m103-example/192.168.103.100:27011" -u "m103-admin"
+-p "m103-pass" --authenticationDatabase "admin"
+
+mongo --port 27001 -u "m103-admin" -p "m103-pass" --authenticationDatabase "admin"
+
+#статус replicaset
+rs.status()
+
+#добавить реплику
+rs.add("m103:27012")
+rs.add("localhost:27012")
+
+#проверить что есть мастер
+rs.isMaster()
+
+#погасить текущего мастера и начать голосование за нового
+rs.stepDown()
