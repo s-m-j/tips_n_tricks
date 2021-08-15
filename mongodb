@@ -1,4 +1,6 @@
 #mongodb
+#документация
+https://docs.mongodb.com/manual/core/replica-set-priority-0-member/
 
 # пример конфигурационного файла
 storage:
