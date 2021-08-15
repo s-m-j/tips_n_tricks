@@ -2,6 +2,12 @@
 #документация
 https://docs.mongodb.com/manual/core/replica-set-priority-0-member/
 
+## Репликация
+rs.status() -- статус "здоровья" сета на основании heartbeat сообщений сежду нодами
+rs.isMaster()  -- есть ли мастер-нода
+db.serverStatus()['repl'] -- похоже на isMaster()
+rs.printReplicationInfo() -- статистика журнала репликации
+
 # пример конфигурационного файла
 storage:
   dbPath: /var/mongodb/db/node1
