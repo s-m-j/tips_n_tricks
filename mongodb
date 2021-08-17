@@ -72,3 +72,50 @@ rs.isMaster()
 
 #погасить текущего мастера и начать голосование за нового
 rs.stepDown()
+
+#реконфигурация без перестарта. Нужно подключиться к PRIMARY!
+cfg = rs.conf()
+cfg.members[3].votes = 0
+cfg.members[3].hidden = true
+cfg.members[3].priority = 0
+rs.reconfig(cfg)
+
+rs.stepDown() -- запустить выборы
+
+#IFHLBYU
+# Конфиг для mongos 
+sharding:
+  configDB: m103-csrs/192.168.103.100:26001,192.168.103.100:26002,192.168.103.100:26003
+security:
+  keyFile: /var/mongodb/pki/m103-keyfile
+net:
+  bindIp: localhost,192.168.103.100
+  port: 26000
+systemLog:
+  destination: file
+  path: /var/mongodb/db/mongos.log
+  logAppend: true
+processManagement:
+  fork: true
+  
+#подключившись нужно разрешить шардирование
+sh.enableSharding("m103")
+потом создать индекс
+db.products.createIndex( { "sku": 1 } )
+потом зашардить 
+sh.shardCollection( "m103.products", { "sku": 1 } )
+и посмотреть
+sh.status()
+
+поменять размер чанка (по умолч 64 мб)
+use config
+db.settings.save({_id: "chunksize", value: 2})
+
+#mongoimport
+mongoimport /dataset/products.part2.json --port 26000 -u "m103-admin" -p "m103-pass" --authenticationDatabase "admin" --db m103 --collection products
+
+#Балансировка
+sh.startBalancer(timeout, interval)
+sh.stopBalancer(timeout, interval)
+включить-выключить возможность балансировки
+sh.setBalancerState(boolean)
