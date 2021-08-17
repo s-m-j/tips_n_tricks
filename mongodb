@@ -2,6 +2,14 @@
 #документация
 https://docs.mongodb.com/manual/core/replica-set-priority-0-member/
 
+## Создаем пользователя
+db.createUser(
+  { user: "m103-application-user",
+    pwd: "m103-application-pass",
+    roles: [ { db: "applicationData", role: "readWrite" } ]
+  }
+)
+
 ## Репликация
 rs.status() -- статус "здоровья" сета на основании heartbeat сообщений сежду нодами
 rs.isMaster()  -- есть ли мастер-нода
@@ -119,3 +127,6 @@ sh.startBalancer(timeout, interval)
 sh.stopBalancer(timeout, interval)
 включить-выключить возможность балансировки
 sh.setBalancerState(boolean)
+
+#посмотреть план
+db.products.find({"sku" : 1000000749 }).explain()
